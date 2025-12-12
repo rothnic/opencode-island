@@ -1,7 +1,16 @@
 # POC: Hook Compatibility
 
-## Objective
-Verify OpenCode hook system compatibility with OpenCode Island's Unix socket communication.
+> **⚠️ IMPORTANT UPDATE**: OpenCode does **NOT** have a hooks system. This POC document was based on incorrect assumptions during planning. The information below about OpenCode hooks is **NOT VALID**.
+>
+> **Actual Implementation**: OpenCode Island will monitor OpenCode sessions by:
+> - Watching session files in `~/.config/opencode/sessions/`
+> - Parsing JSONL conversation files for events
+> - Using the existing file-watching infrastructure from Claude Island
+>
+> The Unix socket communication documented below is still valid for internal app communication, but hooks will not be the trigger mechanism.
+
+## Original Objective (No Longer Applicable)
+~~Verify OpenCode hook system compatibility with OpenCode Island's Unix socket communication.~~
 
 ## Implementation
 

@@ -21,9 +21,20 @@ NC='\033[0m' # No Color
 echo "Test 1: Configuration File Discovery"
 echo "-------------------------------------"
 
-# Create test global config
-mkdir -p ~/.config/opencode
-cat > ~/.config/opencode/opencode.jsonc << 'EOF'
+# Check if user has existing OpenCode config
+if [ -f ~/.config/opencode/opencode.jsonc ] || [ -f ~/.config/opencode/opencode.json ]; then
+    echo -e "${YELLOW}⚠${NC}  Existing OpenCode configuration detected"
+    echo "  This test will NOT modify your existing configuration."
+    echo "  Using test directory instead: /tmp/test-opencode-config"
+    TEST_CONFIG_DIR="/tmp/test-opencode-config"
+else
+    echo -e "${GREEN}✓${NC} No existing OpenCode configuration found"
+    TEST_CONFIG_DIR="$HOME/.config/opencode"
+fi
+
+# Create test global config in safe location
+mkdir -p "$TEST_CONFIG_DIR"
+cat > "$TEST_CONFIG_DIR/opencode.jsonc" << 'EOF'
 {
   // Global test config
   "model": {
@@ -37,7 +48,7 @@ cat > ~/.config/opencode/opencode.jsonc << 'EOF'
 }
 EOF
 
-echo -e "${GREEN}✓${NC} Created global config at ~/.config/opencode/opencode.jsonc"
+echo -e "${GREEN}✓${NC} Created test config at $TEST_CONFIG_DIR/opencode.jsonc"
 
 # Create test project config
 mkdir -p /tmp/test-opencode-project/.opencode
@@ -66,89 +77,11 @@ echo "  - model.api_key: sk-ant-test-preserved (from global, preserved)"
 echo "  - mcp.filesystem: defined (from project)"
 echo "  - ui.theme: dark (from global)"
 echo ""
-
-# Test 2: Hook Script Installation
-echo "Test 2: Hook Script Installation"
-echo "---------------------------------"
-
-mkdir -p ~/.config/opencode/hooks
-mkdir -p ~/.config/opencode/logs
-
-# Copy hooks from temp location if they exist
-if [ -d "/tmp/opencode-hooks" ]; then
-    cp /tmp/opencode-hooks/*.sh ~/.config/opencode/hooks/ 2>/dev/null || true
-fi
-
-# Create hooks if they don't exist
-if [ ! -f ~/.config/opencode/hooks/session-start.sh ]; then
-    cat > ~/.config/opencode/hooks/session-start.sh << 'HOOK_EOF'
-#!/bin/bash
-SOCKET_PATH="/tmp/opencode-island.sock"
-SESSION_ID="${OPENCODE_SESSION_ID:-unknown}"
-CWD="${OPENCODE_CWD:-$(pwd)}"
-PID="${OPENCODE_PID:-$$}"
-TTY="${OPENCODE_TTY:-$(tty 2>/dev/null || echo 'unknown')}"
-
-EVENT_JSON=$(cat <<EOF
-{
-  "session_id": "$SESSION_ID",
-  "cwd": "$CWD",
-  "event": "SessionStart",
-  "status": "starting",
-  "pid": $PID,
-  "tty": "$TTY"
-}
-EOF
-)
-
-if [ -S "$SOCKET_PATH" ]; then
-    echo "$EVENT_JSON" | nc -U "$SOCKET_PATH" 2>/dev/null || true
-fi
-
-LOG_DIR="$HOME/.config/opencode/logs"
-mkdir -p "$LOG_DIR"
-echo "[$(date -Iseconds)] SessionStart: $SESSION_ID" >> "$LOG_DIR/hooks.log"
-HOOK_EOF
-fi
-
-chmod +x ~/.config/opencode/hooks/*.sh 2>/dev/null || true
-
-if [ -f ~/.config/opencode/hooks/session-start.sh ]; then
-    echo -e "${GREEN}✓${NC} Hooks installed at ~/.config/opencode/hooks/"
-    ls -la ~/.config/opencode/hooks/
-else
-    echo -e "${YELLOW}⚠${NC}  Hooks not found, but directory structure created"
-fi
-
+echo "Note: Test config is at $TEST_CONFIG_DIR (safe, non-destructive)"
 echo ""
 
-# Test 3: Hook Execution Test
-echo "Test 3: Hook Execution Test"
-echo "----------------------------"
-
-if [ -f ~/.config/opencode/hooks/session-start.sh ]; then
-    export OPENCODE_SESSION_ID="test-session-$(date +%s)"
-    export OPENCODE_CWD="/tmp"
-    export OPENCODE_PID=$$
-    export OPENCODE_TTY=$(tty 2>/dev/null || echo "unknown")
-    
-    ~/.config/opencode/hooks/session-start.sh
-    
-    if [ -f ~/.config/opencode/logs/hooks.log ]; then
-        echo -e "${GREEN}✓${NC} Hook executed successfully"
-        echo "Last log entry:"
-        tail -1 ~/.config/opencode/logs/hooks.log
-    else
-        echo -e "${YELLOW}⚠${NC}  Hook executed but no log file created"
-    fi
-else
-    echo -e "${YELLOW}⚠${NC}  Skipping hook test (hooks not installed)"
-fi
-
-echo ""
-
-# Test 4: Memory Monitoring Prerequisites
-echo "Test 4: Memory Monitoring Prerequisites"
+# Test 2: Memory Monitoring Prerequisites
+echo "Test 2: Memory Monitoring Prerequisites"
 echo "----------------------------------------"
 
 # Check if we can find common processes
@@ -162,8 +95,8 @@ fi
 
 echo ""
 
-# Test 5: Socket Communication Test
-echo "Test 5: Socket Communication Test"
+# Test 3: Socket Communication Test
+echo "Test 3: Socket Communication Test"
 echo "----------------------------------"
 
 SOCKET_PATH="/tmp/opencode-island.sock"
@@ -191,27 +124,30 @@ echo "POC Testing Summary"
 echo "========================================="
 echo ""
 echo "Configuration Discovery:"
-echo "  - Global config: ~/.config/opencode/opencode.jsonc"
+echo "  - Test config: $TEST_CONFIG_DIR/opencode.jsonc"
 echo "  - Project config: /tmp/test-opencode-project/.opencode/opencode.jsonc"
-echo "  - Test config: test-opencode.jsonc"
+echo "  - Project test config: test-opencode.jsonc"
 echo ""
-echo "Hook System:"
-echo "  - Hooks location: ~/.config/opencode/hooks/"
-echo "  - Logs location: ~/.config/opencode/logs/hooks.log"
+echo "Note: OpenCode does NOT have a hooks system"
+echo "  - Session monitoring will use file watching instead"
+echo "  - Watch: ~/.config/opencode/sessions/"
 echo ""
 echo "Socket Communication:"
 echo "  - Socket path: /tmp/opencode-island.sock"
 echo "  - Format: JSON over Unix domain socket"
+echo "  - Used for internal app communication"
 echo ""
 echo "Next Steps:"
 echo "  1. Build and run OpenCode Island app"
 echo "  2. Verify socket is created"
 echo "  3. Start OpenCode CLI session"
-echo "  4. Verify hooks fire and events are received"
+echo "  4. App will monitor session files (no hooks in OpenCode)"
 echo "  5. Monitor memory usage in app UI"
 echo ""
 echo "See POC documentation for detailed results:"
 echo "  - POC-CONFIG-VALIDATION.md"
 echo "  - POC-MEMORY-MONITORING.md"
-echo "  - POC-HOOKS-COMPATIBILITY.md"
+echo ""
+echo "Note: POC-HOOKS-COMPATIBILITY.md is OUTDATED"
+echo "  OpenCode does not support hooks - will use session file monitoring"
 echo ""
