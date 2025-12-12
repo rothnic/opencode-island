@@ -51,27 +51,37 @@ Phase 1 POC (Proof of Concepts) has been successfully completed for the OpenCode
 
 **Files:** `POC-MEMORY-MONITORING.md`
 
-### 3. Hook Compatibility ⚠️ **UPDATED**
+### 3. Session Monitoring Approach ⚠️ **CORRECTED**
 
 **Original Goal:** Verify hook system compatibility with Unix socket communication.
 
-**IMPORTANT DISCOVERY:** OpenCode does **NOT** have a hooks system.
+**IMPORTANT DISCOVERY:** OpenCode does **NOT** have standalone hook scripts, but **DOES** have:
+- **Plugin system** with lifecycle hooks
+- **SDK** with event subscriptions
+- **Plugins** installed in `~/.config/opencode/plugins/`
 
 **Revised Implementation:**
-- Created example hook scripts for reference (in `/tmp/opencode-hooks/`)
-- Verified existing `HookSocketServer.swift` is compatible with JSON event format
-- **Alternative approach needed**: Session file monitoring instead of hooks
-  - Monitor `~/.config/opencode/sessions/` directory
-  - Parse JSONL conversation files for events
-  - Reuse existing file-watching infrastructure from Claude Island
+
+**Primary Approach - Plugin with Hooks:**
+- Create `opencode-island-monitor` plugin
+- Use plugin lifecycle hooks (`beforeToolCall`, `afterToolCall`, `onSessionStart`, `onSessionEnd`)
+- Plugin sends events to Unix socket (`/tmp/opencode-island.sock`)
+- Real-time event delivery via OpenCode's native event system
+
+**Fallback Approach - File Watching:**
+- Monitor `~/.config/opencode/sessions/` directory
+- Parse JSONL conversation files for events
+- Reuse existing file-watching infrastructure from Claude Island
+- Same approach as Claude Island's existing mechanism
 
 **Key Findings:**
-- OpenCode lacks hooks - documentation was based on incorrect assumptions
-- Unix socket communication still valid for internal app needs
-- Session file watching (used by Claude Island) will work for OpenCode
-- Existing HookSocketServer compatible but won't receive events from hooks
+- OpenCode has plugin system with event hooks (not standalone scripts)
+- Plugins can subscribe to tool and session lifecycle events
+- Unix socket communication still valid for plugin→app communication
+- Existing HookSocketServer compatible with plugin events
+- File watching remains viable fallback option
 
-**Files:** `POC-HOOKS-COMPATIBILITY.md` (marked as outdated)
+**Files:** `POC-PLUGIN-INTEGRATION.md` (new, corrected approach)
 
 ## Deliverables
 
@@ -94,15 +104,18 @@ Phase 1 POC (Proof of Concepts) has been successfully completed for the OpenCode
    - Statistics calculation
 
 ### Hook Scripts (3 files) - **⚠️ FOR REFERENCE ONLY**
-> OpenCode does NOT support hooks. These scripts were created based on incorrect assumptions.
-- `session-start.sh` - Example session event format
-- `before-tool.sh` - Example tool event format  
-- `after-tool.sh` - Example completion event format
+> OpenCode does NOT support standalone hook scripts, but DOES support plugins with hooks.
+- `session-start.sh` - Example session event format (obsolete approach)
+- `before-tool.sh` - Example tool event format (obsolete approach)
+- `after-tool.sh` - Example completion event format (obsolete approach)
 
-### Documentation (6 files)
+**Correct approach:** Use OpenCode plugin system (see POC-PLUGIN-INTEGRATION.md)
+
+### Documentation (7 files)
 - `POC-CONFIG-VALIDATION.md` - Config POC results (5.4 KB) ✅
 - `POC-MEMORY-MONITORING.md` - Memory POC results (8.0 KB) ✅
 - `POC-HOOKS-COMPATIBILITY.md` - Hook POC results (11.2 KB) ⚠️ **OUTDATED**
+- `POC-PLUGIN-INTEGRATION.md` - Plugin integration approach (9.8 KB) ✅ **NEW**
 - `POC-TESTING-GUIDE.md` - Comprehensive testing guide (11.8 KB)
 - `POC-SETUP.md` - Xcode project setup (4.8 KB)
 - `PHASE1-SUMMARY.md` - Implementation summary (this file)
@@ -187,15 +200,15 @@ Hook Script → Unix Socket → HookSocketServer → SessionStore → UI
 4. **Config merging robust** - Handles missing files and partial configs
 
 ### Challenges Identified
-1. **OpenCode has NO hooks system** - Must use session file polling instead
+1. **OpenCode uses plugin system** - Not standalone hooks, but plugin lifecycle hooks
 2. **Xcode project integration manual** - Files must be added via GUI
 3. **Testing requires full build** - No unit test infrastructure exists
 
 ### Recommendations
-1. **Implement session file polling** - OpenCode doesn't support hooks
-2. **Add configuration UI** - For Phase 2 integration
-3. **Create unit tests** - For configuration and memory components
-4. **Remove hook assumptions** - Update all documentation
+1. **Implement plugin-based monitoring** - Create opencode-island-monitor plugin with hooks
+2. **Add file watching fallback** - For environments without plugin support
+3. **Add configuration UI** - For Phase 2 integration
+4. **Create unit tests** - For configuration and memory components
 
 ## OpenCode-Specific Learnings
 
@@ -210,12 +223,14 @@ Hook Script → Unix Socket → HookSocketServer → SessionStore → UI
 ### Session Monitoring Differences
 | Aspect | Claude Code | OpenCode |
 |--------|-------------|----------|
-| Hooks support | ✅ Yes (`~/.claude/hooks/`) | ❌ **NO** |
+| Standalone hooks | ✅ Yes (`~/.claude/hooks/`) | ❌ **NO** |
+| Plugin hooks | ❌ No | ✅ **YES** (lifecycle events) |
+| Plugin location | N/A | `~/.config/opencode/plugins/` |
 | Session files | `~/.claude/sessions/` | `~/.config/opencode/sessions/` |
-| Monitoring approach | Hooks + file watching | File watching only |
+| Monitoring approach | Hooks + file watching | **Plugin hooks** + file watching |
 | Internal socket | `/tmp/claude-island.sock` | `/tmp/opencode-island.sock` |
 
-**Note**: The socket paths are for internal app communication, not for OpenCode/Claude integration.
+**Note**: The socket paths are for internal app communication. OpenCode plugins use lifecycle hooks (`beforeToolCall`, `afterToolCall`, `onSessionStart`, `onSessionEnd`) to send events to the socket.
 
 ## Risk Assessment
 
@@ -225,7 +240,8 @@ Hook Script → Unix Socket → HookSocketServer → SessionStore → UI
 - ✅ Data loss during config merging
 
 ### Risks Updated ⚠️
-- ⚠️ **Hook system unavailable** - Session file polling required (same as Claude fallback)
+- ⚠️ **Plugin approach needs validation** - Test plugin API with actual OpenCode
+- ⚠️ **File watching as fallback** - Proven approach if plugin issues arise
 - ⚠️ Performance with large sessions (mitigation: monitoring implemented)
 - ⚠️ Breaking changes in OpenCode updates (mitigation: version tracking)
 
@@ -297,11 +313,11 @@ All deliverables include:
    - Display in UI (menu bar or panel)
    - Implement threshold alerts
 
-4. **Implement session file monitoring**
-   - OpenCode has NO hooks - use file watching instead
-   - Watch `~/.config/opencode/sessions/` directory
-   - Parse JSONL conversation files
-   - Reuse existing file-watching infrastructure
+4. **Implement plugin-based session monitoring**
+   - Create `opencode-island-monitor` plugin (see `POC-PLUGIN-INTEGRATION.md`)
+   - Use plugin lifecycle hooks for real-time events
+   - Bundle plugin with OpenCode Island installer
+   - Add file watching as fallback
 
 ### Medium Priority
 5. **Create unit tests**
@@ -329,7 +345,9 @@ Core objectives have been met:
 - Memory monitoring accurate and functional ✅
 - ~~Hook compatibility verified~~ **Session monitoring approach clarified** ⚠️
 
-**IMPORTANT DISCOVERY**: OpenCode does NOT have a hooks system. Session monitoring will use file watching instead (same approach as Claude Island's fallback mechanism).
+**IMPORTANT DISCOVERY**: OpenCode does NOT have standalone hook scripts, but DOES have a **plugin system** with **lifecycle hooks**. Session monitoring will use:
+1. **Primary**: Plugin-based hooks (`opencode-island-monitor` plugin)
+2. **Fallback**: File watching (same approach as Claude Island)
 
 The implementation is **ready for Phase 2 integration** with this understanding.
 
@@ -337,14 +355,15 @@ The implementation is **ready for Phase 2 integration** with this understanding.
 - ✅ Comprehensive planning from migration strategy
 - ✅ Well-documented OpenCode differences
 - ✅ Existing file-watching architecture already compatible
-- ✅ Minimal changes needed to existing code
+- ✅ Plugin system provides native event integration
 
 ### Key Achievements
 - 🎯 2/3 POC objectives fully completed (config + memory)
-- 📝 42+ KB of comprehensive documentation (1 doc needs revision)
+- 🎯 Session monitoring approach clarified (plugin + fallback)
+- 📝 52+ KB of comprehensive documentation
 - 🔧 3 robust Swift implementations
-- ⚠️ 3 example hook scripts (for reference - OpenCode has no hooks)
-- ✅ No blocking issues found (file watching is proven approach)
+- 🔌 Plugin integration approach documented
+- ✅ No blocking issues found
 
 **Ready to proceed to Phase 2: Core Integration** 🚀
 
