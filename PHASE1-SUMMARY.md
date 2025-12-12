@@ -210,9 +210,12 @@ Hook Script → Unix Socket → HookSocketServer → SessionStore → UI
 ### Session Monitoring Differences
 | Aspect | Claude Code | OpenCode |
 |--------|-------------|----------|
-| Hooks | ✅ Supported (`~/.claude/hooks/`) | ❌ **NOT SUPPORTED** |
-| Session files | `.claude/sessions/` | `~/.config/opencode/sessions/` |
+| Hooks support | ✅ Yes (`~/.claude/hooks/`) | ❌ **NO** |
+| Session files | `~/.claude/sessions/` | `~/.config/opencode/sessions/` |
 | Monitoring approach | Hooks + file watching | File watching only |
+| Internal socket | `/tmp/claude-island.sock` | `/tmp/opencode-island.sock` |
+
+**Note**: The socket paths are for internal app communication, not for OpenCode/Claude integration.
 
 ## Risk Assessment
 

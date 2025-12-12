@@ -50,7 +50,7 @@ echo "--------------------------------"
 
 check_file "POC-CONFIG-VALIDATION.md" "Configuration POC"
 check_file "POC-MEMORY-MONITORING.md" "Memory Monitoring POC"
-check_file "POC-HOOKS-COMPATIBILITY.md" "Hooks POC (outdated)"
+check_file "POC-HOOKS-COMPATIBILITY.md" "Hooks POC (OUTDATED - OpenCode has no hooks)"
 check_file "POC-TESTING-GUIDE.md" "Testing Guide"
 check_file "POC-SETUP.md" "Setup Instructions"
 check_file "PHASE1-SUMMARY.md" "Implementation Summary"
