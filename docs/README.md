@@ -13,6 +13,8 @@ Welcome to the comprehensive OpenCode documentation for the OpenCode Island proj
 - [MCP Server Integration](./mcp-server-integration.md) - How to integrate and configure MCP servers
 - [Plugins and Tools Ecosystem](./plugins-and-tools.md) - Available plugins, tools, and how to use them
 - [Configuration Guide](./configuration-guide.md) - Comprehensive configuration reference
+- [OpenCode Tools Reference](./opencode-tools-reference.md) - Complete list of all built-in tools
+- [OpenCode-Specific Configuration](./opencode-specific-config.md) - OpenCode schema, skills, monitoring, and builds
 
 ### Advanced Topics
 - [Advanced Use Cases](./advanced-use-cases.md) - Real-world projects and implementations
