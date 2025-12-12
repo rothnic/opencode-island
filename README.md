@@ -21,10 +21,15 @@
 
 ## 🚀 Status: In Development
 
-**Current Phase:** Planning Complete  
-**Next Phase:** Phase 1 - MVP OpenCode Integration (2-3 weeks)
+**Current Phase:** Phase 1 - POC Complete ✅  
+**Next Phase:** Phase 2 - Core Integration (2-3 weeks)
 
 See [Implementation Backlog](./backlog/README.md) for detailed roadmap.
+
+### Phase 1 POC Results
+- ✅ [Configuration Discovery & Validation](./POC-CONFIG-VALIDATION.md) - OpenCode config loading and merging
+- ✅ [Memory Monitoring](./POC-MEMORY-MONITORING.md) - Process discovery and memory tracking
+- ✅ [Hook Compatibility](./POC-HOOKS-COMPATIBILITY.md) - Unix socket communication validated
 
 ## ✨ Planned Features
 
@@ -109,12 +114,13 @@ The app will:
 
 | Phase | Timeline | Status |
 |-------|----------|--------|
-| **Phase 1:** MVP OpenCode Integration | 2-3 weeks | 📋 Planned |
-| **Phase 2:** Enhanced Features & MCP | 2-3 weeks | 📋 Planned |
-| **Phase 3:** Advanced Capabilities | 2 weeks | 📋 Planned |
-| **Phase 4:** Polish & Production | 1-2 weeks | 📋 Planned |
+| **Phase 1:** POC Validation | 2 weeks | ✅ Complete |
+| **Phase 2:** Core OpenCode Integration | 2-3 weeks | 📋 Planned |
+| **Phase 3:** Enhanced Features & MCP | 2-3 weeks | 📋 Planned |
+| **Phase 4:** Advanced Capabilities | 2 weeks | 📋 Planned |
+| **Phase 5:** Polish & Production | 1-2 weeks | 📋 Planned |
 
-**Total estimated time:** 7-10 weeks
+**Total estimated time:** 9-12 weeks
 
 See [backlog/SUMMARY.md](./backlog/SUMMARY.md) for detailed roadmap overview.
 

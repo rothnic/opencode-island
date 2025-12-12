@@ -1,0 +1,33 @@
+{
+  // Test OpenCode configuration for POC validation
+  // This config will be merged with any existing user configuration
+  
+  // Model configuration - fallback if not specified in user config
+  "model": {
+    "provider": "github-copilot",
+    "name": "gpt-4o-mini"
+  },
+  
+  // MCP server configuration for testing
+  "mcp": {
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    },
+    "git": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-git"]
+    }
+  },
+  
+  // UI configuration
+  "ui": {
+    "theme": "dark",
+    "font_size": 14
+  },
+  
+  // Tools configuration
+  "tools": {
+    "enabled": ["read", "write", "bash", "grep"]
+  }
+}
