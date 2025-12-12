@@ -397,6 +397,10 @@ struct NotchView: View {
         switch newStatus {
         case .opened, .popping:
             isVisible = true
+            // Clear waiting-for-input timestamps only when manually opened (user acknowledged)
+            if viewModel.openReason == .click || viewModel.openReason == .hover {
+                waitingForInputTimestamps.removeAll()
+            }
         case .closed:
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                 if viewModel.status == .closed && !isAnyProcessing && !hasPendingPermission && !hasWaitingForInput && !activityCoordinator.expandingActivity.show {
