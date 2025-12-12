@@ -1,5 +1,25 @@
 # Phase 1 POC - Setup Instructions
 
+> **⚠️ IMPORTANT**: The build scripts (`scripts/build.sh`) will **FAIL** until Swift files are added to the Xcode project. This is expected at the POC stage. Follow the instructions below to add the files first.
+
+## Build Script Status
+
+**`scripts/build.sh` - Will fail until files are added to Xcode**
+
+The existing build script expects all Swift files to be in the Xcode project. Since POC files are not yet integrated, running `./scripts/build.sh` will fail with compilation errors about missing files.
+
+**To validate POC files without building**, use:
+```bash
+./validate-poc.sh
+```
+
+**To build the app**, first add Swift files to Xcode (see instructions below), then:
+```bash
+# In Xcode: Product > Build (⌘B)
+# or command line (after adding files):
+xcodebuild -project ClaudeIsland.xcodeproj -scheme ClaudeIsland -configuration Debug
+```
+
 ## Adding POC Files to Xcode Project
 
 The Phase 1 POC implementation includes new Swift files that need to be added to the Xcode project before building.
